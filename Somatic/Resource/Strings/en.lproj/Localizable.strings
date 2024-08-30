@@ -40,7 +40,7 @@
 "Paygate.Yearly" = "Yearly";
 "Paygate.Yearly.Bottom" = "%@/year";
 "Paygate.PerWeek" = "per week";
-"Paygate.FreeTrialDays" = "7-day free trial";
+"Paygate.FreeTrialDays" = "3-day free trial";
 "Paygate.Then" = "%@\n";
 "Paygate.Continue" = "Continue";
 "Paygate.TryFreeSubscribe" = "Try Free & Subscribe";
