@@ -1,8 +1,8 @@
 //
 //  PaygateInfoCell.swift
-//  Soccer
+//  CodeChallenge
 //
-//  Created by Андрей Чернышев on 02.09.2022.
+//  Created by Андрей Чернышев on 20.02.2024.
 //
 
 import UIKit
@@ -11,10 +11,15 @@ final class PaygateInfoCell: UIView {
     lazy var imageView = makeImageView()
     lazy var label = makeLabel()
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    let text: String
+    
+    init(text: String) {
+        self.text = text
+        
+        super.init(frame: .zero)
         
         makeConstraints()
+        initialize()
     }
     
     required init?(coder: NSCoder) {
@@ -22,15 +27,10 @@ final class PaygateInfoCell: UIView {
     }
 }
 
-// MARK: Public
-extension PaygateInfoCell {
-    func setup(text: String) {
-        let attrs = TextAttributes()
-            .textColor(Appearance.mono100)
-            .font(Fonts.Inter.regular(size: 16.scale))
-            .lineHeight(19.6.scale)
-            .letterSpacing(-0.41.scale)
-        label.attributedText = text.attributed(with: attrs)
+// MARK: Private
+private extension PaygateInfoCell {
+    func initialize() {
+        backgroundColor = UIColor.clear
     }
 }
 
@@ -40,13 +40,15 @@ private extension PaygateInfoCell {
         NSLayoutConstraint.activate([
             imageView.widthAnchor.constraint(equalToConstant: 12.scale),
             imageView.heightAnchor.constraint(equalToConstant: 13.scale),
-            imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 42.scale),
+            imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 35.scale),
             imageView.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
         
         NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 60.scale),
-            label.centerYAnchor.constraint(equalTo: centerYAnchor)
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 57.scale),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16.scale),
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 }
@@ -55,15 +57,24 @@ private extension PaygateInfoCell {
 private extension PaygateInfoCell {
     func makeImageView() -> UIImageView {
         let view = UIImageView()
+        view.image = UIImage(named: "Paygate.Cell")
         view.contentMode = .scaleAspectFit
-        view.image = UIImage(named: "Paygate.CellChecked")
+        view.clipsToBounds = true
+        view.backgroundColor = UIColor.clear
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         return view
     }
     
     func makeLabel() -> UILabel {
+        let attrs = TextAttributes()
+            .textColor(Appearance.mono100)
+            .font(Fonts.Inter.regular(size: ScreenSize.isIphoneXFamily ? 16.scale : 14.scale))
+            .lineHeight(ScreenSize.isIphoneXFamily ? 26.scale : 24.scale)
+            .textAlignment(.left)
+        
         let view = UILabel()
+        view.attributedText = text.attributed(with: attrs)
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         return view

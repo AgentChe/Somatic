@@ -57,7 +57,7 @@ private extension ProfileDetailsViewController {
             vc.modalPresentationStyle = .fullScreen
             present(vc, animated: true)
         case .open(let url):
-            if let url = URL(string: url), UIApplication.shared.canOpenURL(url) {
+            if UIApplication.shared.canOpenURL(url) {
                 UIApplication.shared.open(url)
             }
         }

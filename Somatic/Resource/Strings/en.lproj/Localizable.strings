@@ -28,24 +28,28 @@
 "Splash.Preloader3" = "Setting up your account...";
 
 // MARK: Paygate
-"Paygate.Title" = "UNLOCK PREMIUM STATUS";
-"Paygate.Cell1" = "Customized somatic workouts";
-"Paygate.Cell2" = "Clear instructions";
-"Paygate.Cell3" = "Easily schedule your training";
-"Paygate.Info" = "Secured by the App Store. Cancel anytime.";
+"Paygate.Error.Title" = "Error";
+"Paygate.Error.Text" = "An error occurred during execution. Try later.";
+"Paygate.Error.Button" = "OK";
+"Paygate.Title" = "Upgrade Premium";
+"Paygate.Info1" = "Customized somatic workouts";
+"Paygate.Info2" = "Clear instructions";
+"Paygate.Info3" = "Easily schedule your training";
+"Paygate.EnableFreeTrial" = "Enable Free Trial";
+"Paygate.FreeTrialEnabled" = "Free Trial Enabled";
+"Paygate.Yearly" = "Yearly";
+"Paygate.Yearly.Bottom" = "%@/year";
+"Paygate.PerWeek" = "per week";
+"Paygate.FreeTrialDays" = "7-day free trial";
+"Paygate.Then" = "%@\n";
+"Paygate.Continue" = "Continue";
+"Paygate.TryFreeSubscribe" = "Try Free & Subscribe";
+"Paygate.CancelAnytime" = "Cancel Anytime";
+"Paygate.NoPaymentNow" = "No payment now";
 "Paygate.TermsOfUse" = "Terms of Use";
 "Paygate.PrivacyPolicy" = "Privacy Policy";
-"Paygate.RestorePurchases" = "Restore Purchase";
-"Paygate.Failed" = "Failed to make purchase";
-"Paygate.Monthly.Name1" = "7 days for free";
-"Paygate.Monthly.Name2" = "Quick prep";
-"Paygate.Monthly.Bottom1" = "After 7-day trial";
-"Paygate.Monthly.Bottom2" = "Trial is over";
-"Paygate.Lifetime.Name" = "Lifetime";
-"Paygate.Lifetime.PriceDescription" = "\nIn terms of  1  year";
-"Paygate.Lifetime.BottomDescription" = "once";
-"Paygate.Discount" = "SAVE %i%%";
-"Paygate.Price.Period" = "month";
+"Paygate.RestorePurchases" = "Restore Purchases";
+"Paygate.BestOffer" = "⭐ Best Offer";
 
 // MARK: Onboarding
 "Onboarding.Welcome.Title" = "WELCOME TO\nSOMATIC APP";

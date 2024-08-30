@@ -1,8 +1,8 @@
 //
 //  PaygateInteractor.swift
-//  Soccer
+//  CodeChallenge
 //
-//  Created by Андрей Чернышев on 02.09.2022.
+//  Created by Андрей Чернышев on 20.02.2024.
 //
 
 import RxSwift
@@ -22,8 +22,6 @@ final class PaygateInteractor {
     
     private lazy var iapManager = IAPManager()
     private lazy var sessionManager = SessionManager()
-    private lazy var profileManager = ProfileManager()
-    private lazy var validationObserver = PurchaseValidationObserver.shared
     
     private lazy var disposables = [Disposable]()
     
@@ -75,34 +73,9 @@ extension PaygateInteractor: OtterScaleReceiptValidationDelegate {
     func otterScaleDidValidatedReceipt(with result: AppStoreValidateResult?) {
         OtterScale.shared.removeReceiptValidation(delegate: self)
         
-        let otterScaleID = OtterScale.shared.getInternalID()
-        
-        let complete: Single<Void>
-        
-        if let cachedToken = self.sessionManager.getSession()?.userToken {
-            if cachedToken != otterScaleID {
-                complete = self.profileManager.syncTokens(oldToken: cachedToken, newToken: otterScaleID)
-            } else {
-                complete = .deferred { .just(Void()) }
-            }
-        } else {
-            complete = self.profileManager.login(userToken: otterScaleID)
-        }
-        
-        let disposable = complete.subscribe(onSuccess: { [weak self] in
-            guard let self = self else {
-                return
-            }
-            
-            let session = Session(userToken: otterScaleID)
-            self.sessionManager.store(session: session)
-            
-            let hasActiveSubscriptions = self.sessionManager.hasActiveSubscriptions()
-            let callbackResult = PurchaseActionResult.completed(hasActiveSubscriptions)
-            self.callback.accept(callbackResult)
-        })
-        
-        disposables.append(disposable)
+        let hasActiveSubscriptions = sessionManager.hasActiveSubscriptions()
+        let callbackResult = PurchaseActionResult.completed(hasActiveSubscriptions)
+        callback.accept(callbackResult)
     }
 }
 
@@ -123,6 +96,8 @@ private extension PaygateInteractor {
     func restore() -> Disposable {
         iapManager
             .restorePurchases()
-            .subscribe()
+            .subscribe(onFailure: { [weak self] error in
+                self?.callback.accept(.completed(false))
+            })
     }
 }

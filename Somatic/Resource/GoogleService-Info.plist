@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyDYMBvTlDvUHvmqE45ZIXy_0agf13NFmL0</string>
+	<string>AIzaSyAUkiySo-UFksyOyIqoDtR8Yjs4atcCYsI</string>
 	<key>GCM_SENDER_ID</key>
-	<string>180688788712</string>
+	<string>1097154063622</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>train.pilates</string>
+	<string>train.somatic</string>
 	<key>PROJECT_ID</key>
-	<string>wall-pilates-d47e5</string>
+	<string>somatic-daeda</string>
 	<key>STORAGE_BUCKET</key>
-	<string>wall-pilates-d47e5.appspot.com</string>
+	<string>somatic-daeda.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:180688788712:ios:2b34c69ed82824d06dbd5d</string>
+	<string>1:1097154063622:ios:00b6fdb60f9dbde8d3c287</string>
 </dict>
 </plist>

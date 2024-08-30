@@ -1,37 +1,35 @@
 //
 //  PaygateProductButton.swift
-//  Soccer
+//  CodeChallenge
 //
-//  Created by Андрей Чернышев on 02.09.2022.
+//  Created by Андрей Чернышев on 19.03.2024.
 //
 
 import UIKit
+import RxCocoa
 
 final class PaygateProductButton: UIButton {
-    var isChecked: Bool = false {
+    var marked: Bool = false {
         didSet {
             update()
         }
     }
     
-    var info: PaygateOptionInfo? {
+    var product: ProductPrice? {
         didSet {
             update()
         }
     }
     
-    lazy var checkedView = makeCheckedView()
-    lazy var line1Label = makeLabel()
-    lazy var line2Label = makeLabel()
-    lazy var line3Label = makeLabel()
-    lazy var discountPlaceholderView = makeDiscountPlaceholderView()
-    lazy var discountLabel = makeLabel()
-    lazy var line5Label = makeLabel()
+    lazy var leftLabel = makeLabel()
+    lazy var rigthLabel = makeLabel()
+    lazy var markerView = makeMarkerView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         makeConstraints()
+        initialize()
         update()
     }
     
@@ -42,38 +40,104 @@ final class PaygateProductButton: UIButton {
 
 // MARK: Private
 private extension PaygateProductButton {
+    func initialize() {
+        backgroundColor = Appearance.mono200
+        layer.cornerRadius = 10.scale
+    }
+    
     func update() {
-        changeSelection()
-        configure()
+        updateLeft()
+        updateRight()
+        updateAppearance()
     }
     
-    func changeSelection() {
-        layer.borderWidth = 2.scale
-        layer.borderColor = isChecked ? Appearance.main300.cgColor : Appearance.main200.cgColor
-        
-        checkedView.isHidden = !isChecked
-    }
-    
-    func configure() {
-        guard let info = info else {
+    func updateLeft() {
+        guard let product else {
             return
         }
         
-        line1Label.attributedText = info.line1
-        line1Label.isHidden = info.line1 == nil
+        let isYearly = isYearly()
         
-        line2Label.attributedText = info.line2
-        line2Label.isHidden = info.line2 == nil
+        let result = NSMutableAttributedString()
         
-        line3Label.attributedText = info.line3
-        line3Label.isHidden = info.line3 == nil
+        switch isYearly {
+        case true:
+            let nameAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.medium(size: 14.scale))
+                .lineHeight(20.scale)
+            let name = "Paygate.Yearly".localized + "\n"
+            result.append(name.attributed(with: nameAttrs))
+            
+            let bottomAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.semiBold(size: 16.scale))
+                .lineHeight(22.scale)
+            let price = Currency(productPrice: product).formatted() ?? ""
+            let bottom = String(format: "Paygate.Yearly.Bottom".localized, price)
+            result.append(bottom.attributed(with: bottomAttrs))
+        case false:
+            let attrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.semiBold(size: ScreenSize.isIphoneXFamily ? 16.scale : 15.scale))
+                .lineHeight(ScreenSize.isIphoneXFamily ? 22.scale : 21.scale)
+            result.append("Paygate.FreeTrialDays".localized.uppercased().attributed(with: attrs))
+        }
         
-        discountLabel.attributedText = info.line4
-        discountLabel.isHidden = info.line4 == nil
-        discountPlaceholderView.isHidden = info.line4 == nil
+        leftLabel.attributedText = result
+    }
+    
+    func updateRight() {
+        guard let product else {
+            return
+        }
         
-        line5Label.attributedText = info.line5
-        line5Label.isHidden = info.line5 == nil
+        let isYearly = isYearly()
+        
+        let result = NSMutableAttributedString()
+        
+        switch isYearly {
+        case true:
+            let priceAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.medium(size: 16.scale))
+                .lineHeight(22.scale)
+            let price = Currency(productPrice: product, div: 52).formatted() ?? ""
+            result.append((price + "\n").attributed(with: priceAttrs))
+            
+            let periodAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.medium(size: 14.scale))
+                .lineHeight(20.scale)
+            result.append("Paygate.PerWeek".localized.attributed(with: periodAttrs))
+        case false:
+            let priceAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.medium(size: 16.scale))
+                .lineHeight(22.scale)
+            let price = Currency(productPrice: product).formatted() ?? ""
+            result.append(String(format: "Paygate.Then".localized, price).attributed(with: priceAttrs))
+            
+            let periodAttrs = TextAttributes()
+                .textColor(Appearance.mono100)
+                .font(Fonts.Inter.medium(size: 14.scale))
+                .lineHeight(20.scale)
+            result.append("Paygate.PerWeek".localized.attributed(with: periodAttrs))
+        }
+        
+        rigthLabel.attributedText = result
+    }
+    
+    func isYearly() -> Bool {
+       product?.id == GlobalDefinitions.Paygate.yearly
+    }
+    
+    func updateAppearance() {
+        let imageName = marked ? "Paygate.Marker.S" : "Paygate.Marker.D"
+        markerView.image = UIImage(named: imageName)
+        
+        layer.borderWidth = marked ? 2.scale : 1.scale
+        layer.borderColor = marked ? Appearance.main300.cgColor : Appearance.main200.cgColor
     }
 }
 
@@ -81,69 +145,39 @@ private extension PaygateProductButton {
 private extension PaygateProductButton {
     func makeConstraints() {
         NSLayoutConstraint.activate([
-            checkedView.widthAnchor.constraint(equalToConstant: 24.scale),
-            checkedView.heightAnchor.constraint(equalToConstant: 24.scale),
-            checkedView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12.scale),
-            checkedView.topAnchor.constraint(equalTo: topAnchor, constant: 13.scale)
+            leftLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16.scale),
+            leftLabel.widthAnchor.constraint(equalToConstant: ScreenSize.isIphoneXFamily ? 178.scale : 162.scale),
+            leftLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
         
         NSLayoutConstraint.activate([
-            line1Label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12.scale),
-            line1Label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -127.scale)
+            rigthLabel.leadingAnchor.constraint(equalTo: leftLabel.trailingAnchor, constant: 8.scale),
+            rigthLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
         
         NSLayoutConstraint.activate([
-            line2Label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12.scale),
-            line2Label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -91.scale)
-        ])
-        
-        NSLayoutConstraint.activate([
-            line3Label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12.scale),
-            line3Label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -74.scale)
-        ])
-        
-        NSLayoutConstraint.activate([
-            discountPlaceholderView.heightAnchor.constraint(equalToConstant: 23.scale),
-            discountPlaceholderView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12.scale),
-            discountPlaceholderView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -47.scale)
-        ])
-        
-        NSLayoutConstraint.activate([
-            discountLabel.leadingAnchor.constraint(equalTo: discountPlaceholderView.leadingAnchor, constant: 2.scale),
-            discountLabel.trailingAnchor.constraint(equalTo: discountPlaceholderView.trailingAnchor, constant: -2.scale),
-            discountLabel.topAnchor.constraint(equalTo: discountPlaceholderView.topAnchor, constant: 3.scale),
-            discountLabel.bottomAnchor.constraint(equalTo: discountPlaceholderView.bottomAnchor, constant: -3.scale)
-        ])
-        
-        NSLayoutConstraint.activate([
-            line5Label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12.scale),
-            line5Label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12.scale)
+            markerView.widthAnchor.constraint(equalToConstant: 24.scale),
+            markerView.heightAnchor.constraint(equalToConstant: 24.scale),
+            markerView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16.scale),
+            markerView.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 }
 
 // MARK: Lazy initialization
 private extension PaygateProductButton {
-    func makeCheckedView() -> UIImageView {
-        let view = UIImageView()
-        view.contentMode = .scaleAspectFit
-        view.image = UIImage(named: "Paygate.Checked")
-        view.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(view)
-        return view
-    }
-    
     func makeLabel() -> UILabel {
         let view = UILabel()
+        view.numberOfLines = 2
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         return view
     }
     
-    func makeDiscountPlaceholderView() -> UIView {
-        let view = UIView()
-        view.backgroundColor = Appearance.main500
-        view.layer.cornerRadius = 4.scale
+    func makeMarkerView() -> UIImageView {
+        let view = UIImageView()
+        view.clipsToBounds = true
+        view.contentMode = .scaleAspectFit
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)
         return view
