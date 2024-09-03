@@ -1,114 +1,86 @@
 //
 //  PaygateViewModel.swift
-//  CodeChallenge
+//  Soccer
 //
-//  Created by Андрей Чернышев on 20.02.2024.
+//  Created by Андрей Чернышев on 02.09.2022.
 //
 
 import RxSwift
 import RxCocoa
 
 final class PaygateViewModel {
-    typealias Products = (yearly: ProductPrice, weekly: ProductPrice)
+    let buy = PublishRelay<String>()
+    let restore = PublishRelay<Void>()
     
-    enum Route {
-        case dismiss
-        case error
-        case open(URL)
-    }
+    lazy var products = makeProducts()
+    lazy var buyed = makeBuyed()
+    lazy var restored = makeRestored()
     
-    private lazy var activity = RxActivityIndicator()
+    let activityIndicator = RxActivityIndicator()
     
     private lazy var iapManager = IAPManager()
-    private lazy var paygateInteractor = PaygateInteractor()
-}
-
-// MARK: Public
-extension PaygateViewModel {
-    struct Input {
-        let didTapClose: Signal<Void>
-        let didTapBuy: Signal<String>
-        let didTapRestore: Signal<Void>
-        let didTapTermsOfUse: Signal<Void>
-        let didTapPrivacyPolicy: Signal<Void>
-    }
-    
-    struct Output {
-        let activity: Driver<Bool>
-        let route: Driver<Route>
-        let products: Driver<Products>
-    }
-    
-    func configure(input: Input) -> Output {
-        Output(
-            activity: activity.asDriver(),
-            route: makeRoute(
-                didTapClose: input.didTapClose,
-                didTapBuy: input.didTapBuy,
-                didTapRestore: input.didTapRestore,
-                didTapTermsOfUse: input.didTapTermsOfUse,
-                didTapPrivacyPolicy: input.didTapPrivacyPolicy
-            ),
-            products: makeProducts()
-        )
-    }
+    private lazy var purchaseInteractor = PaygateInteractor()
+    private lazy var paygateManager = PaygateManager()
 }
 
 // MARK: Private
 private extension PaygateViewModel {
-    func makeProducts() -> Driver<Products> {
-        iapManager
-            .obtainPrices(for: [
-                GlobalDefinitions.Paygate.yearly,
-                GlobalDefinitions.Paygate.weekly
-            ])
-            .compactMap { prices -> Products? in
-                guard
-                    let yearly = prices.first(where: { $0.id == GlobalDefinitions.Paygate.yearly }),
-                    let weekly = prices.first(where: { $0.id == GlobalDefinitions.Paygate.weekly })
-                else {
-                    return nil
-                }
-
-                return (yearly: yearly, weekly: weekly)
-            }
-            .trackActivity(activity)
-            .asDriver(onErrorDriveWith: .never())
-    }
-    
-    func makeRoute(
-        didTapClose: Signal<Void>,
-        didTapBuy: Signal<String>,
-        didTapRestore: Signal<Void>,
-        didTapTermsOfUse: Signal<Void>,
-        didTapPrivacyPolicy: Signal<Void>
-    ) -> Driver<Route> {
-        let dismiss = didTapClose
-            .map { Route.dismiss }
-            .asDriver(onErrorDriveWith: .never())
-        let buy = makeBuyed(didTapBuy: didTapBuy)
-            .map { $0 ? Route.dismiss : Route.error }
-        let restore = makeRestored(didTapRestore: didTapRestore)
-            .map { $0 ? Route.dismiss : Route.error }
-        let termsOfUse = didTapTermsOfUse
-            .map { Route.open(GlobalDefinitions.termsOfServiceUrl) }
-            .asDriver(onErrorDriveWith: .never())
-        let privacyPolicy = didTapPrivacyPolicy
-            .map { Route.open(GlobalDefinitions.privacyPolicyUrl) }
-            .asDriver(onErrorDriveWith: .never())
-        
-        return Driver
-            .merge(dismiss, buy, restore, termsOfUse, privacyPolicy)
-    }
-    
-    func makeBuyed(didTapBuy: Signal<String>) -> Driver<Bool> {
-        didTapBuy
-            .flatMapLatest { [weak self] productId -> Driver<Bool> in
+    func makeProducts() -> Driver<[PaygateOptionInfo]> {
+        makeProductIds()
+            .flatMap { [weak self] args -> Driver<[PaygateOptionInfo]> in
                 guard let self = self else {
                     return .never()
                 }
                 
-                return self.paygateInteractor
+                let (paygate, productIds) = args
+                
+                return  self.iapManager
+                    .obtainPrices(for: productIds)
+                    .map { prices -> [PaygateOptionInfo] in
+                        guard let paygate = paygate ?? Paygate(prices: prices) else {
+                            return []
+                        }
+                        
+                        return [
+                            self.info(config: paygate.leftOptionConfig, prices: prices),
+                            self.info(config: paygate.rightOptionConfig, prices: prices)
+                        ].compactMap { $0 }
+                    }
+                    .trackActivity(self.activityIndicator)
+                    .asDriver(onErrorJustReturn: [])
+            }
+    }
+    
+    func makeProductIds() -> Driver<(Paygate?, [String])> {
+        paygateManager
+            .obtainPaygate(forceUpdate: false)
+            .asDriver(onErrorJustReturn: nil)
+            .map { paygate -> (Paygate?, [String]) in
+                var productIds = [
+                    GlobalDefinitions.Paygate.defaultLifetime,
+                    GlobalDefinitions.Paygate.defaultMonthly
+                ]
+                
+                if let paygate = paygate {
+                    productIds = [
+                        paygate.leftOptionConfig.productId,
+                        paygate.rightOptionConfig.productId
+                    ]
+                }
+                
+                return (paygate, productIds)
+            }
+            .asDriver(onErrorDriveWith: .never())
+    }
+    
+    func makeBuyed() -> Signal<Bool> {
+        let purchase = buy
+            .flatMapLatest { [weak self] productId -> Observable<Bool> in
+                guard let self = self else {
+                    return .never()
+                }
+                
+                return self.purchaseInteractor
                     .makeActiveSubscription(by: .buy(productId))
                     .map { result -> Bool in
                         switch result {
@@ -118,19 +90,22 @@ private extension PaygateViewModel {
                             return false
                         }
                     }
-                    .trackActivity(self.activity)
-                    .asDriver(onErrorJustReturn: false)
+                    .trackActivity(self.activityIndicator)
+                    .catchAndReturn(false)
             }
+        
+        return purchase
+            .asSignal(onErrorJustReturn: false)
     }
     
-    func makeRestored(didTapRestore: Signal<Void>) -> Driver<Bool> {
-        didTapRestore
-            .flatMapLatest { [weak self] _ -> Driver<Bool> in
+    func makeRestored() -> Signal<Bool> {
+        let purchase = restore
+            .flatMapLatest { [weak self] _ -> Observable<Bool> in
                 guard let self = self else {
                     return .never()
                 }
                 
-                return self.paygateInteractor
+                return self.purchaseInteractor
                     .makeActiveSubscription(by: .restore)
                     .map { result -> Bool in
                         switch result {
@@ -140,8 +115,23 @@ private extension PaygateViewModel {
                             return false
                         }
                     }
-                    .trackActivity(self.activity)
-                    .asDriver(onErrorJustReturn: false)
+                    .trackActivity(self.activityIndicator)
+                    .catchAndReturn(false)
             }
+        
+        return purchase
+            .asSignal(onErrorJustReturn: false)
+    }
+}
+
+// MARK: Private (Additional)
+private extension PaygateViewModel {
+    func info(config: PaygateOptionConfig, prices: [ProductPrice]) -> PaygateOptionInfo? {
+        guard let price = prices.first(where: { $0.id == config.productId }) else {
+            return nil
+        }
+        
+        return PaygateOptionInfo(config: config,
+                                 price: price)
     }
 }
