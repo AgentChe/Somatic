@@ -15,7 +15,7 @@ final class GlobalDefinitions {
     static let otterScaleApiKey = "CbtZJXKzS7g5rHHC"
     
     static let applicationTag = "SOMATIC"
-    static let amplitudeApiKey = "d4ad5c33d23d7a891e9c68de9471f36b"
+    static let amplitudeApiKey = "ad1acf62a1718340f0958c15b7b9dcfc"
     
     static let termsOfServiceUrl = URL(string: "https://cocorporateapps.com/terms-of-use.html")!
     static let privacyPolicyUrl = URL(string: "https://cocorporateapps.com/privacy-policy.html")!
