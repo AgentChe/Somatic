@@ -58,7 +58,7 @@ private extension ProfileDetailsViewController {
             present(vc, animated: true)
         case .open(let url):
             if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url)
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
             }
         }
     }

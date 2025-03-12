@@ -42,7 +42,7 @@ final class PaygateViewController: UIViewController {
                 mainView.privacyPolicyButton.rx.tap.map { GlobalDefinitions.privacyPolicyUrl }
             )
             .subscribe(onNext: { url in
-                UIApplication.shared.open(url, options: [:])
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
             })
             .disposed(by: disposeBag)
         

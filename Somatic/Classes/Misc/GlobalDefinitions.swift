@@ -8,7 +8,7 @@
 import Foundation
 
 final class GlobalDefinitions {
-    static let domain = "https://somatic.cocorporateapps.com"
+    static let domain = "https://somatic.thinkaboutapps.com"
     static let apiKey = "Btk4yD8ENGFbHaQcnn60"
     
     static let otterScaleHost = "https://api.korrekted.com"
@@ -17,9 +17,9 @@ final class GlobalDefinitions {
     static let applicationTag = "SOMATIC"
     static let amplitudeApiKey = "ad1acf62a1718340f0958c15b7b9dcfc"
     
-    static let termsOfServiceUrl = URL(string: "https://cocorporateapps.com/terms-of-use.html")!
-    static let privacyPolicyUrl = URL(string: "https://cocorporateapps.com/privacy-policy.html")!
-    static let contactUsUrl = URL(string: "https://cocorporateapps.com/contacts.html")!
+    static let termsOfServiceUrl = URL(string: "https://thinkaboutapps.com/terms")!
+    static let privacyPolicyUrl = URL(string: "https://thinkaboutapps.com/policy")!
+    static let contactUsUrl = URL(string: "https://thinkaboutapps.com/contact")!
     
     enum Paygate {
         static let defaultLifetime = "train.somatic.endless"
